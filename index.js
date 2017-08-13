@@ -1,35 +1,27 @@
 var fs = require('fs')
 var concat = require('concat-stream')
-
+var request = require('request')
 var XLSX = require('xlsx')
 
-var readStream = fs.createReadStream('warrant_search_result_xls.xls')
-var concatStream = concat(gotXls)
-
-readStream.on('error', handleError)
-readStream.pipe(concatStream)
-
 function gotXls(xlsBuffer) {
-  var workbook = XLSX.read(xlsBuffer, {type:"buffer"})
+  var workbook = XLSX.read(xlsBuffer, { type: 'buffer' })
   var csv = toCsv(workbook)
   console.log(csv)
 }
 
-function handleError(err) {
-  // handle your error appropriately here, e.g.:
-  console.error(err) // print the error to STDERR
-  process.exit(1) // exit program with non-zero exit code
-}
-
 function toCsv(workbook) {
   var result = [];
-  workbook.SheetNames.forEach(function(sheetName) {
+  workbook.SheetNames.forEach((sheetName) => {
     var csv = XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName]);
     if(csv.length > 0){
-      result.push("SHEET: " + sheetName);
-      result.push("");
-      result.push(csv);
+      result.push('SHEET: ' + sheetName)
+      result.push('')
+      result.push(csv)
     }
-  });
-  return result.join("\n");
+  })
+  return result.join('\n')
 }
+
+var concatStream = concat(gotXls)
+var url = 'http://warrants.com.hk/en/data/warrant_search_data?action=excel&ucode=700&order=1&sname=all&wtype=all'
+request(url).pipe(concatStream)
